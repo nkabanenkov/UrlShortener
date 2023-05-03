@@ -2,11 +2,8 @@ package storage_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
-	"urlshortener/internal/urlshortener"
 	"urlshortener/internal/urlshortener/storage"
-	"urlshortener/internal/urlshortener/validator"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/testcontainers/testcontainers-go"
@@ -25,7 +22,7 @@ func CreateContainer(ctx context.Context) (testcontainers.Container, error) {
 		HostConfigModifier: func(hc *container.HostConfig) {
 			hc.NetworkMode = "host"
 		},
-		WaitingFor: wait.ForLog("database system is ready to accept connections"),
+		WaitingFor: wait.ForLog("PostgreSQL init process complete; ready for start up"),
 		SkipReaper: true,
 	}
 	return testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -37,7 +34,7 @@ func CreateContainer(ctx context.Context) (testcontainers.Container, error) {
 func Connect(ctx context.Context, cont testcontainers.Container) (storage.Storage, error) {
 	ip, _ := cont.Host(ctx)
 	port, _ := cont.MappedPort(ctx, "5432")
-	return storage.NewPgStorage(enc, storage.DbConfig{
+	return storage.NewPgStorage(testEnc, storage.DbConfig{
 		ip,
 		uint(port.Int()),
 		"postgres",
@@ -46,7 +43,7 @@ func Connect(ctx context.Context, cont testcontainers.Container) (storage.Storag
 	})
 }
 
-func TestPg(t *testing.T) {
+func TestPgNotFound(t *testing.T) {
 	ctx := context.Background()
 	cont, err := CreateContainer(ctx)
 	if err != nil {
@@ -60,27 +57,39 @@ func TestPg(t *testing.T) {
 	}
 	defer stor.Close()
 
-	app := urlshortener.NewUrlShortener(stor)
-	app.AddValidator(validator.NewHttpPrefixValidator())
+	testNotFound(stor, t)
+}
 
-	shortnedUrls := make([]string, 0)
-	pattern := "https://example.com/i=%d"
-	for i := range alphabet {
-		url := fmt.Sprintf(pattern, i)
-		shortenedUrl, err := app.Create(url)
-		if err != nil {
-			t.Errorf("Failed to shorten %d-th url", i)
-		}
-		shortnedUrls = append(shortnedUrls, shortenedUrl)
+func TestPgBadEncoding(t *testing.T) {
+	ctx := context.Background()
+	cont, err := CreateContainer(ctx)
+	if err != nil {
+		panic(err)
 	}
+	defer cont.Terminate(ctx)
 
-	for i := range shortnedUrls {
-		url, err := app.Get(shortnedUrls[i])
-		if err != nil {
-			panic(err)
-		}
-		if fmt.Sprintf(pattern, i) != url {
-			t.Error("Encoded and decoded urls are not equal")
-		}
+	stor, err := Connect(ctx, cont)
+	if err != nil {
+		panic(err)
 	}
+	defer stor.Close()
+
+	testBadEncoding(stor, t)
+}
+
+func TestPgCreateGet(t *testing.T) {
+	ctx := context.Background()
+	cont, err := CreateContainer(ctx)
+	if err != nil {
+		panic(err)
+	}
+	defer cont.Terminate(ctx)
+
+	stor, err := Connect(ctx, cont)
+	if err != nil {
+		panic(err)
+	}
+	defer stor.Close()
+
+	testCreateGet(stor, t)
 }

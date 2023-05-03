@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"encoding/json"
 	"sync"
 	"urlshortener/internal/urlshortener/encoder"
 )
@@ -20,11 +19,6 @@ func NewInMemoryStorage(enc encoder.Encoder) *inMemoryStorage {
 		make(map[uint64]string),
 		sync.Mutex{},
 	}
-}
-
-func (s *inMemoryStorage) DumpJson() string {
-	dump, _ := json.Marshal(s.urls)
-	return string(dump)
 }
 
 func (s *inMemoryStorage) Create(url string) (string, error) {

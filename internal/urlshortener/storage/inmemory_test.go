@@ -1,44 +1,32 @@
 package storage_test
 
 import (
-	"fmt"
 	"testing"
-	"urlshortener/internal/urlshortener/encoder"
 	"urlshortener/internal/urlshortener/storage"
 )
 
-var alphabet = []rune{'a', 'b', 'c', 'd'}
-var width = 10
-var enc = encoder.NewBaseEncoder(alphabet, uint(width))
-
-func TestNotFound(t *testing.T) {
-	b := storage.NewInMemoryStorage(enc)
-	_, err := b.Get("aaabcdabcd")
-	if _, ok := err.(storage.UrlNotFoundError); !ok {
-		t.Error("Expected to recieve an error")
+func powInt64(b uint64, e uint) uint64 {
+	if e == 0 {
+		return 1
 	}
+	var p uint64 = 1
+	for i := uint(0); i < e; i++ {
+		p *= b
+	}
+	return b
 }
 
-func TestCreateGet(t *testing.T) {
-	b := storage.NewInMemoryStorage(enc)
-	uniq := make(map[string]string)
-	pattern := "https://example.com/?id=%d"
+func TestInMemNotFound(t *testing.T) {
+	stor := storage.NewInMemoryStorage(testEnc)
+	testNotFound(stor, t)
+}
 
-	for i := 0; i < len(alphabet); i++ {
-		encoded, err := b.Create(fmt.Sprintf(pattern, i))
-		if err != nil {
-			t.Errorf("Failed to encode %d-th string", i)
-		}
-		if _, found := uniq[encoded]; found {
-			t.Errorf("Encoded %d-th string is not unique", i)
-		}
+func TestInMemBadEncoding(t *testing.T) {
+	stor := storage.NewInMemoryStorage(testEnc)
+	testBadEncoding(stor, t)
+}
 
-		decoded, err := b.Get(encoded)
-		if err != nil {
-			t.Errorf("Failed to decode %d-th string", i)
-		}
-		if decoded != fmt.Sprintf(pattern, i) {
-			t.Errorf("Create-Get failed for %d-th string", i)
-		}
-	}
+func TestInMemCreateGet(t *testing.T) {
+	stor := storage.NewInMemoryStorage(testEnc)
+	testCreateGet(stor, t)
 }
