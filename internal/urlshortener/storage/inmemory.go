@@ -21,7 +21,7 @@ func NewInMemoryStorage(enc encoder.Encoder) *inMemoryStorage {
 	}
 }
 
-func (s *inMemoryStorage) Create(url string) (string, error) {
+func (s *inMemoryStorage) Shorten(url string) (string, error) {
 	s.mutex.Lock()
 
 	s.urls[s.counter] = url
@@ -33,7 +33,7 @@ func (s *inMemoryStorage) Create(url string) (string, error) {
 	return s.enc.Encode(oldCounter)
 }
 
-func (s *inMemoryStorage) Get(url string) (string, error) {
+func (s *inMemoryStorage) Unshorten(url string) (string, error) {
 	id, err := s.enc.Decode(url)
 	if err != nil {
 		return "", err

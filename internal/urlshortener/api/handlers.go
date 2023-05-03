@@ -18,7 +18,7 @@ func MakeUrlsGetHandler(app *urlshortener.UrlShortener, paramName string) func(*
 			return
 		}
 
-		decodedUrl, err := app.Get(url)
+		decodedUrl, err := app.Unshorten(url)
 		if err != nil {
 			if _, ok := err.(encoder.DecodingError); ok {
 				c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -45,7 +45,7 @@ func MakeUrlsPostHandler(app *urlshortener.UrlShortener) func(*gin.Context) {
 			return
 		}
 
-		encodedUrl, err := app.Create(body.Url)
+		encodedUrl, err := app.Shorten(body.Url)
 		if err != nil {
 			if _, ok := err.(validator.InvalidUrlError); ok {
 				c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})

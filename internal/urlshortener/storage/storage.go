@@ -1,8 +1,8 @@
 package storage
 
 type Storage interface {
-	Create(string) (string, error)
-	Get(string) (string, error)
+	Shorten(string) (string, error)
+	Unshorten(string) (string, error)
 	Close()
 }
 

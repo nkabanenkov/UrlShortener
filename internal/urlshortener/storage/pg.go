@@ -46,7 +46,7 @@ func (s *pgStorage) Close() {
 	sqlDb.Close()
 }
 
-func (s *pgStorage) Create(url string) (string, error) {
+func (s *pgStorage) Shorten(url string) (string, error) {
 	var row urls
 	result := s.db.Model(&urls{}).Create(&row)
 	if result.Error != nil {
@@ -68,7 +68,7 @@ func (s *pgStorage) Create(url string) (string, error) {
 	return encoded, nil
 }
 
-func (s *pgStorage) Get(url string) (string, error) {
+func (s *pgStorage) Unshorten(url string) (string, error) {
 	id, err := s.enc.Decode(url)
 	if err != nil {
 		return "", err
