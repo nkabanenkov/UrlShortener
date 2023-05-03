@@ -23,7 +23,7 @@ type DbConfig struct {
 }
 
 type urls struct {
-	Id  uint64 `gorm:"primaryKey;autoIncrement:true"`
+	Id  uint64 `gorm:"index;primaryKey;autoIncrement:true"`
 	Url string
 }
 
@@ -50,7 +50,7 @@ func (s *pgStorage) Create(url string) (string, error) {
 	var row urls
 	result := s.db.Model(&urls{}).Create(&row)
 	if result.Error != nil {
-		panic(result.Error.Error())
+		return "", DatabaseError{result.Error.Error()}
 	}
 
 	encoded, err := s.enc.Encode(row.Id)

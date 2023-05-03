@@ -2,11 +2,11 @@
 
 - [x] Docker image, compose & devcontainer files
 - [x] In memory & PostgreSQL storages
-- [x] Unit tests:
+- [x] Tests:
     - [x] base encoder
     - [x] http prefix validator
-    - [x] in-memory
-- [ ] Integration tests (with PostgreSQL)
+    - [x] in-memory storage
+    - [x] PostgreSQL (with [testcontainers](https://golang.testcontainers.org))
 
 ## Usage
 
@@ -24,7 +24,8 @@ If you want to run in-memory storage, then do `docker compose -f docker-compose.
 ### Encoding overflow
 When the encoder can't fit the id of an URL into a word encoded with the given alphabet and length, `EncodingError{"encoding overflow"}` is returned and the service panics.
 
+### Testing
+PostgreSQL storage tests are performed with [testcontainers](https://golang.testcontainers.org).
+
 ### Developing
 VS Code [devcontainer](https://containers.dev) files are located in `.devcontainer`. Press Cmd+Shift+P and select `Reopen in container`.
-
-## Integration testing with testcontainers

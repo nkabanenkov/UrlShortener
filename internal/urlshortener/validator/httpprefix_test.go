@@ -1,10 +1,13 @@
-package validator
+package validator_test
 
-import "testing"
+import (
+	"testing"
+	"urlshortener/internal/urlshortener/validator"
+)
 
 func TestPrefix(t *testing.T) {
-	val := NewHttpPrefixValidator()
-	if _, ok := (val.Valid("abc://example.com")).(InvalidUrlError); !ok {
+	val := validator.NewHttpPrefixValidator()
+	if _, ok := (val.Valid("abc://example.com")).(validator.InvalidUrlError); !ok {
 		t.Error("Expected an error")
 	}
 	if val.Valid("http://example.com") != nil || val.Valid("https://example.com") != nil {

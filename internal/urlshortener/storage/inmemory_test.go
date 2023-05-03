@@ -1,25 +1,26 @@
-package storage
+package storage_test
 
 import (
 	"fmt"
 	"testing"
 	"urlshortener/internal/urlshortener/encoder"
+	"urlshortener/internal/urlshortener/storage"
 )
 
 var alphabet = []rune{'a', 'b', 'c', 'd'}
-var padding = 10
-var enc = encoder.NewBaseEncoder(alphabet, uint(padding))
+var width = 10
+var enc = encoder.NewBaseEncoder(alphabet, uint(width))
 
 func TestNotFound(t *testing.T) {
-	b := NewInMemoryStorage(enc)
+	b := storage.NewInMemoryStorage(enc)
 	_, err := b.Get("aaabcdabcd")
-	if _, ok := err.(UrlNotFoundError); !ok {
+	if _, ok := err.(storage.UrlNotFoundError); !ok {
 		t.Error("Expected to recieve an error")
 	}
 }
 
 func TestCreateGet(t *testing.T) {
-	b := NewInMemoryStorage(enc)
+	b := storage.NewInMemoryStorage(enc)
 	uniq := make(map[string]string)
 	pattern := "https://example.com/?id=%d"
 
