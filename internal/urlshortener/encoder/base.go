@@ -1,6 +1,8 @@
 package encoder
 
-import "strings"
+import (
+	"strings"
+)
 
 type baseEncoder struct {
 	encAlphabet []rune
@@ -69,7 +71,6 @@ func (e baseEncoder) Decode(encoded string) (uint64, error) {
 	}
 
 	var decoded uint64
-
 	pow := uint64(1)
 	for _, ch := range encoded {
 		digit, ok := e.decAlphabet[ch]

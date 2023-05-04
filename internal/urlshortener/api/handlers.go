@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"urlshortener/internal/urlshortener"
 	"urlshortener/internal/urlshortener/encoder"
@@ -23,6 +24,7 @@ func MakeUrlsGetHandler(app *urlshortener.UrlShortener, paramName string) func(*
 			if _, ok := err.(encoder.DecodingError); ok {
 				c.JSON(http.StatusBadRequest, UnshortenAnswer{err.Error()})
 			} else if _, ok := err.(storage.DatabaseError); ok {
+				log.Println("Database error occured: " + err.Error())
 				c.JSON(http.StatusInternalServerError, UnshortenAnswer{err.Error()})
 				return
 			} else if _, ok := err.(storage.UrlNotFoundError); ok {
@@ -51,8 +53,11 @@ func MakeUrlsPostHandler(app *urlshortener.UrlShortener) func(*gin.Context) {
 				c.JSON(http.StatusBadRequest, ShortenAnswer{err.Error()})
 				return
 			} else if _, ok := err.(storage.DatabaseError); ok {
+				log.Println("Database error occured: " + err.Error())
 				c.JSON(http.StatusInternalServerError, ShortenAnswer{err.Error()})
 				return
+			} else if _, ok := err.(encoder.EncodingError); ok {
+				log.Fatalln("Encoding overflow")
 			} else {
 				panic(err.Error())
 			}
