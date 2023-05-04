@@ -27,7 +27,7 @@ func main() {
 	defer stor.Close()
 
 	app := urlshortener.NewUrlShortener(stor)
-	app.AddValidator(validator.NewHttpPrefixValidator())
+	app.AddValidator(validator.MakeUrlValidator())
 
 	server := gin.Default()
 	server.GET("/urls/:url", api.MakeUrlsGetHandler(app, "url"))

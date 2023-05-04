@@ -14,50 +14,50 @@ func MakeUrlsGetHandler(app *urlshortener.UrlShortener, paramName string) func(*
 	return func(c *gin.Context) {
 		url := c.Param(paramName)
 		if url == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "empty URL"})
+			c.JSON(http.StatusBadRequest, UnshortenAnswer{"empty URL"})
 			return
 		}
 
 		decodedUrl, err := app.Unshorten(url)
 		if err != nil {
 			if _, ok := err.(encoder.DecodingError); ok {
-				c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+				c.JSON(http.StatusBadRequest, UnshortenAnswer{err.Error()})
 			} else if _, ok := err.(storage.DatabaseError); ok {
-				c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+				c.JSON(http.StatusInternalServerError, UnshortenAnswer{err.Error()})
 				return
 			} else if _, ok := err.(storage.UrlNotFoundError); ok {
-				c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+				c.JSON(http.StatusNotFound, UnshortenAnswer{err.Error()})
 				return
 			} else {
 				panic(err.Error())
 			}
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": decodedUrl})
+		c.JSON(http.StatusOK, UnshortenAnswer{decodedUrl})
 	}
 }
 
 func MakeUrlsPostHandler(app *urlshortener.UrlShortener) func(*gin.Context) {
 	return func(c *gin.Context) {
-		var body EncodingRequestBody
-		if err := c.BindJSON(&body); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid body request format"})
+		var req ShortenRequest
+		if err := c.BindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, ShortenAnswer{"invalid body request format"})
 			return
 		}
 
-		encodedUrl, err := app.Shorten(body.Url)
+		encodedUrl, err := app.Shorten(req.Url)
 		if err != nil {
 			if _, ok := err.(validator.InvalidUrlError); ok {
-				c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+				c.JSON(http.StatusBadRequest, ShortenAnswer{err.Error()})
 				return
 			} else if _, ok := err.(storage.DatabaseError); ok {
-				c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+				c.JSON(http.StatusInternalServerError, ShortenAnswer{err.Error()})
 				return
 			} else {
 				panic(err.Error())
 			}
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": encodedUrl})
+		c.JSON(http.StatusOK, ShortenAnswer{encodedUrl})
 	}
 }
