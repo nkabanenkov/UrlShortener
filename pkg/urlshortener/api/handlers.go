@@ -21,16 +21,18 @@ func MakeGetHandler(app *urlshortener.UrlShortener, paramName string) func(*gin.
 
 		decodedUrl, err := app.Unshorten(url)
 		if err != nil {
-			if _, ok := err.(encoder.DecodingError); ok {
+			switch err.(type) {
+			case encoder.DecodingError:
 				c.JSON(http.StatusBadRequest, UnshortenAnswer{err.Error()})
-			} else if _, ok := err.(storage.DatabaseError); ok {
+				return
+			case storage.DatabaseError:
 				log.Println("Database error occured: " + err.Error())
 				c.JSON(http.StatusInternalServerError, UnshortenAnswer{err.Error()})
 				return
-			} else if _, ok := err.(storage.UrlNotFoundError); ok {
+			case storage.UrlNotFoundError:
 				c.JSON(http.StatusNotFound, UnshortenAnswer{err.Error()})
 				return
-			} else {
+			default:
 				panic(err.Error())
 			}
 		}
@@ -49,16 +51,17 @@ func MakePostHandler(app *urlshortener.UrlShortener) func(*gin.Context) {
 
 		encodedUrl, err := app.Shorten(req.Url)
 		if err != nil {
-			if _, ok := err.(validator.InvalidUrlError); ok {
+			switch err.(type) {
+			case validator.InvalidUrlError:
 				c.JSON(http.StatusBadRequest, ShortenAnswer{err.Error()})
 				return
-			} else if _, ok := err.(storage.DatabaseError); ok {
+			case storage.DatabaseError:
 				log.Println("Database error occured: " + err.Error())
 				c.JSON(http.StatusInternalServerError, ShortenAnswer{err.Error()})
 				return
-			} else if _, ok := err.(encoder.EncodingOverflowError); ok {
+			case encoder.EncodingOverflowError:
 				log.Fatalln("Encoding overflow")
-			} else {
+			default:
 				panic(err.Error())
 			}
 		}
