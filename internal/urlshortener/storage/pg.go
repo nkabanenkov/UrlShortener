@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"urlshortener/internal/urlshortener/encoder"
+	"urlshortener/pkg/urlshortener/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -14,21 +15,14 @@ type pgStorage struct {
 	db  *gorm.DB
 }
 
-type DbConfig struct {
-	Hostname string
-	Port     uint
-	User     string
-	Password string
-	DbName   string
-}
-
 type urls struct {
 	Id  uint64 `gorm:"index;primaryKey;autoIncrement:true"`
 	Url string
 }
 
-func NewPgStorage(enc encoder.Encoder, dbCfg DbConfig) (*pgStorage, error) {
-	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbCfg.Hostname, dbCfg.Port, dbCfg.User, dbCfg.Password, dbCfg.DbName)
+// Returns `(nil, DatabaseError)` if fails to connect to the db.
+func NewPgStorage(enc encoder.Encoder, dbCfg config.Config) (*pgStorage, error) {
+	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbCfg.DbHost, dbCfg.DbPort, dbCfg.DbUser, dbCfg.DbPassword, dbCfg.DbName)
 	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
 		return nil, DatabaseError{err.Error()}
@@ -38,14 +32,8 @@ func NewPgStorage(enc encoder.Encoder, dbCfg DbConfig) (*pgStorage, error) {
 	return &pgStorage{enc, db}, nil
 }
 
-func (s *pgStorage) Close() {
-	sqlDb, err := s.db.DB()
-	if err != nil {
-		return
-	}
-	sqlDb.Close()
-}
-
+// Returns `("", DatabaseError)` if fails to create a record or saves changes in the db,
+// `("", EncodingOverflowError)` if encoding overflow has occured.
 func (s *pgStorage) Shorten(url string) (string, error) {
 	var row urls
 	result := s.db.Model(&urls{}).Create(&row)
@@ -62,12 +50,15 @@ func (s *pgStorage) Shorten(url string) (string, error) {
 
 	result = s.db.Save(&row)
 	if result.Error != nil {
-		panic(result.Error.Error())
+		return "", DatabaseError{result.Error.Error()}
 	}
 
 	return encoded, nil
 }
 
+// Returns `"", DecodingError` if `url` has invalid encoding,
+// `"", UrlNotFoundError` if decoded value was not found in the db,
+// `"", DatabaseError` if fails to query the db.
 func (s *pgStorage) Unshorten(url string) (string, error) {
 	id, err := s.enc.Decode(url)
 	if err != nil {

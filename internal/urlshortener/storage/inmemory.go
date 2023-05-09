@@ -46,5 +46,3 @@ func (s *inMemoryStorage) Unshorten(url string) (string, error) {
 
 	return decodedUrl, nil
 }
-
-func (*inMemoryStorage) Close() {}

@@ -3,7 +3,6 @@ package storage
 type Storage interface {
 	Shorten(string) (string, error)
 	Unshorten(string) (string, error)
-	Close()
 }
 
 type DatabaseError struct {

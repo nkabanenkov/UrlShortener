@@ -1,86 +1,76 @@
 package main
 
 import (
+	"log"
 	"os"
 	"strconv"
-	"urlshortener/internal/urlshortener/storage"
+	"urlshortener/pkg/urlshortener/config"
 )
 
-type config struct {
-	alphabet []rune
-	width    uint
-	inMemory bool
-}
-
-func readConfig() config {
-	c := config{}
+func readConfig() config.Config {
+	c := config.Config{}
 
 	env, found := os.LookupEnv("URLSHORTENER_ALPHABET")
 	if !found {
-		panic("URLSHORTENER_ALPHABET is not set")
+		log.Fatalln("URLSHORTENER_ALPHABET is not set")
 	}
-	c.alphabet = []rune(env)
+	c.Alphabet = []rune(env)
 
 	env, found = os.LookupEnv("URLSHORTENER_WIDTH")
 	if !found {
-		panic("URLSHORTENER_WIDTH is not set")
+		log.Fatalln("URLSHORTENER_WIDTH is not set")
 	}
 	width, err := strconv.Atoi(env)
 	if err != nil || width < 0 {
-		panic("Invalid URLSHORTENER_WIDTH")
+		log.Fatalln("Invalid URLSHORTENER_WIDTH")
 	}
-	c.width = uint(width)
+	c.Width = uint(width)
 
 	env, found = os.LookupEnv("URLSHORTENER_INMEMORY")
 	if !found {
-		c.inMemory = false
+		c.InMemory = false
 	} else {
-		inMem, err := strconv.ParseBool(env)
+		c.InMemory, err = strconv.ParseBool(env)
 		if err != nil {
-			panic("Invalid URLSHORTENER_INMEMORY")
+			log.Fatalln("Invalid URLSHORTENER_INMEMORY")
 		}
-		c.inMemory = inMem
 	}
 
-	return c
-}
+	if !c.InMemory {
+		env, found := os.LookupEnv("DB_HOST")
+		if !found {
+			log.Fatalln("DB_HOST must be set")
+		}
+		c.DbHost = env
 
-func readDbConfig() storage.DbConfig {
-	c := storage.DbConfig{}
+		env, found = os.LookupEnv("DB_PORT")
+		if !found {
+			log.Fatalln("DB_PORT is not set")
+		}
+		port, err := strconv.Atoi(env)
+		if err != nil || port < 0 {
+			log.Fatalln("Invalid POSTGRES_PORT")
+		}
+		c.DbPort = uint(port)
 
-	env, found := os.LookupEnv("DB_HOST")
-	if !found {
-		panic("DB_HOST must be set")
-	}
-	c.Hostname = env
+		env, found = os.LookupEnv("POSTGRES_USER")
+		if !found {
+			log.Fatalln("POSTGRES_USER must be set")
+		}
+		c.DbUser = env
 
-	env, found = os.LookupEnv("DB_PORT")
-	if !found {
-		panic("DB_PORT is not set")
-	}
-	port, err := strconv.Atoi(env)
-	if err != nil || port < 0 {
-		panic("Invalid POSTGRES_PORT")
-	}
-	c.Port = uint(port)
+		env, found = os.LookupEnv("POSTGRES_PASSWORD")
+		if !found {
+			log.Fatalln("POSTGRES_PASSWORD must be set")
+		}
+		c.DbPassword = env
 
-	env, found = os.LookupEnv("POSTGRES_USER")
-	if !found {
-		panic("POSTGRES_USER must be set")
+		env, found = os.LookupEnv("POSTGRES_DB")
+		if !found {
+			log.Fatalln("POSTGRES_DB must be set")
+		}
+		c.DbName = env
 	}
-	c.User = env
-
-	env, found = os.LookupEnv("POSTGRES_PASSWORD")
-	if !found {
-		panic("POSTGRES_PASSWORD must be set")
-	}
-	c.Password = env
-
-	env, found = os.LookupEnv("POSTGRES_DB")
-	if !found {
-		panic("POSTGRES_DB must be set")
-	}
-	c.DbName = env
 
 	return c
 }

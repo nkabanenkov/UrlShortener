@@ -5,11 +5,11 @@ type Encoder interface {
 	Decode(string) (uint64, error)
 }
 
-type EncodingError struct {
+type EncodingOverflowError struct {
 	message string
 }
 
-func (e EncodingError) Error() string {
+func (e EncodingOverflowError) Error() string {
 	return e.message
 }
 

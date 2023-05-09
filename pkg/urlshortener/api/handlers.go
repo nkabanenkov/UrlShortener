@@ -3,15 +3,15 @@ package api
 import (
 	"log"
 	"net/http"
-	"urlshortener/internal/urlshortener"
 	"urlshortener/internal/urlshortener/encoder"
 	"urlshortener/internal/urlshortener/storage"
 	"urlshortener/internal/urlshortener/validator"
+	"urlshortener/pkg/urlshortener"
 
 	"github.com/gin-gonic/gin"
 )
 
-func MakeUrlsGetHandler(app *urlshortener.UrlShortener, paramName string) func(*gin.Context) {
+func MakeGetHandler(app *urlshortener.UrlShortener, paramName string) func(*gin.Context) {
 	return func(c *gin.Context) {
 		url := c.Param(paramName)
 		if url == "" {
@@ -39,7 +39,7 @@ func MakeUrlsGetHandler(app *urlshortener.UrlShortener, paramName string) func(*
 	}
 }
 
-func MakeUrlsPostHandler(app *urlshortener.UrlShortener) func(*gin.Context) {
+func MakePostHandler(app *urlshortener.UrlShortener) func(*gin.Context) {
 	return func(c *gin.Context) {
 		var req ShortenRequest
 		if err := c.BindJSON(&req); err != nil {
@@ -56,7 +56,7 @@ func MakeUrlsPostHandler(app *urlshortener.UrlShortener) func(*gin.Context) {
 				log.Println("Database error occured: " + err.Error())
 				c.JSON(http.StatusInternalServerError, ShortenAnswer{err.Error()})
 				return
-			} else if _, ok := err.(encoder.EncodingError); ok {
+			} else if _, ok := err.(encoder.EncodingOverflowError); ok {
 				log.Fatalln("Encoding overflow")
 			} else {
 				panic(err.Error())

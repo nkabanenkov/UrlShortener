@@ -6,7 +6,7 @@ import (
 )
 
 func TestPrefix(t *testing.T) {
-	val := validator.NewHttpPrefixValidator()
+	val := validator.MakeHttpPrefixValidator()
 	if _, ok := (val.Valid("abc://example.com")).(validator.InvalidUrlError); !ok {
 		t.Error("Expected an error")
 	}

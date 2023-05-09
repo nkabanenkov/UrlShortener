@@ -40,7 +40,7 @@ func TestEncodingOverflow(t *testing.T) {
 		t.Error("Bad encoding of 7")
 	}
 	_, err := enc.Encode(8)
-	if _, ok := err.(encoder.EncodingError); !ok {
+	if _, ok := err.(encoder.EncodingOverflowError); !ok {
 		t.Error("Should've returned an EnvalidEncoding error")
 	}
 }

@@ -22,7 +22,8 @@ func MakeUrlValidator() UrlValidator {
 	return UrlValidator{val}
 }
 
-// RFC 3986 https://www.ietf.org/rfc/rfc3986.txt
+// Returns `nil` if all the characters in `url` are valid in RFC 3986 or `InvalidUrlError` otherwise.
+// https://www.ietf.org/rfc/rfc3986.txt
 func (uv UrlValidator) Valid(url string) error {
 	for _, ch := range url {
 		if _, found := uv.validCharacters[ch]; !found {

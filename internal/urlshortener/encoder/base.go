@@ -13,6 +13,7 @@ type baseEncoder struct {
 
 // Takes `encAlphabet` -- an encoding table that maps 0, ..., n-1 to a_0, .., a_{n-1}.
 // `padding` is the length of encoded string. It can be 0, which means there encoded string aren't padded with a_0.
+// Returns `nil` if `encAlphabet`'s length is 0.
 func NewBaseEncoder(encAlphabet []rune, padding uint) *baseEncoder {
 	arity := len(encAlphabet)
 	if arity == 0 {
@@ -36,7 +37,7 @@ func NewBaseEncoder(encAlphabet []rune, padding uint) *baseEncoder {
 }
 
 // Encodes `n` with `encAlphabet`. If `padding` is not 0, makes sure the encoded string fits.
-// Returns `EncodingError` if failed to fit.
+// Returns `EncodingOverflowError` if failed to fit.
 func (e baseEncoder) Encode(n uint64) (string, error) {
 	builder := strings.Builder{}
 	if e.padding > 0 {
@@ -53,7 +54,7 @@ func (e baseEncoder) Encode(n uint64) (string, error) {
 	if e.padding > 0 {
 		diff := int(e.padding) - builder.Len()
 		if diff < 0 {
-			return "", EncodingError{"encoding overflow"}
+			return "", EncodingOverflowError{"encoding overflow"}
 		}
 		for i := 0; i < diff; i++ {
 			builder.WriteRune(e.encAlphabet[0])

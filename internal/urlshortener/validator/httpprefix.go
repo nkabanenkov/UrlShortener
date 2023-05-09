@@ -4,8 +4,8 @@ import "strings"
 
 type httpPrefixValidator struct{}
 
-func NewHttpPrefixValidator() *httpPrefixValidator {
-	return &httpPrefixValidator{}
+func MakeHttpPrefixValidator() httpPrefixValidator {
+	return httpPrefixValidator{}
 }
 
 // Returns `nil`, if `url` begins with `http://` or `https://` or `InvalidUrlError` otherwise.
