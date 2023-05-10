@@ -7,7 +7,7 @@
 - [x] In memory & PostgreSQL storages
 - [x] Tests:
     - [x] base encoder
-    - [x] simple character validator (RFC3986-approved characters)
+    - [x] URL characters (RFC3986-approved characters) and scheme (http or https) validators
     - [x] in-memory storage
     - [x] PostgreSQL storage (with [testcontainers](https://golang.testcontainers.org))
 

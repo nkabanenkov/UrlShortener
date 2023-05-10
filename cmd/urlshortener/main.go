@@ -25,7 +25,7 @@ func main() {
 	}
 
 	shutdown := make(chan os.Signal, 1)
-	signal.Notify(shutdown, syscall.SIGINT)
+	signal.Notify(shutdown, syscall.SIGTERM)
 
 	httpHandlers := httpApi.MakeUrlShortenerHttpHandlers(&app)
 	httpEngine := gin.Default()
