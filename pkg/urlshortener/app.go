@@ -1,6 +1,7 @@
 package urlshortener
 
 import (
+	"context"
 	"urlshortener/internal/urlshortener/encoder"
 	"urlshortener/internal/urlshortener/storage"
 	"urlshortener/internal/urlshortener/validator"
@@ -39,18 +40,18 @@ func MakeUrlShortener(cfg config.Config) (UrlShortener, error) {
 	return app, nil
 }
 
-func (u *UrlShortener) Shorten(url string) (string, error) {
+func (u *UrlShortener) Shorten(ctx context.Context, url string) (string, error) {
 	for _, v := range u.validators {
 		if err := v.Valid(url); err != nil {
 			return "", err
 		}
 	}
 
-	return u.storage.Shorten(url)
+	return u.storage.Shorten(ctx, url)
 }
 
-func (u *UrlShortener) Unshorten(url string) (string, error) {
-	return u.storage.Unshorten(url)
+func (u *UrlShortener) Unshorten(ctx context.Context, url string) (string, error) {
+	return u.storage.Unshorten(ctx, url)
 }
 
 func (u *UrlShortener) addValidator(validators ...validator.Validator) {

@@ -1,6 +1,7 @@
 package storage_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -18,14 +19,14 @@ func testNotFound(stor storage.Storage, t *testing.T) {
 	for i := 0; i < int(testWidth); i++ {
 		builder.WriteRune(testAlphabet[0])
 	}
-	_, err := stor.Unshorten(builder.String())
+	_, err := stor.Unshorten(context.Background(), builder.String())
 	if _, ok := err.(storage.UrlNotFoundError); !ok {
 		t.Error("Expected to recieve an error")
 	}
 }
 
 func testBadEncoding(stor storage.Storage, t *testing.T) {
-	_, err := stor.Unshorten("!!!")
+	_, err := stor.Unshorten(context.Background(), "!!!")
 	if _, ok := err.(encoder.DecodingError); !ok {
 		t.Error("Expected to recieve an error")
 	}
@@ -36,7 +37,7 @@ func testCreateGet(stor storage.Storage, t *testing.T) {
 	pattern := "https://example.com/?id=%d"
 
 	for i := 0; i < int(testPower); i++ {
-		encoded, err := stor.Shorten(fmt.Sprintf(pattern, i))
+		encoded, err := stor.Shorten(context.Background(), fmt.Sprintf(pattern, i))
 		if err != nil {
 			t.Errorf("Failed to encode %d-th string", i)
 		}
@@ -44,7 +45,7 @@ func testCreateGet(stor storage.Storage, t *testing.T) {
 			t.Errorf("Encoded %d-th string is not unique", i)
 		}
 
-		decoded, err := stor.Unshorten(encoded)
+		decoded, err := stor.Unshorten(context.Background(), encoded)
 		if err != nil {
 			t.Errorf("Failed to decode %d-th string", i)
 		}

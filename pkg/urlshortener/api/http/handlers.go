@@ -1,4 +1,4 @@
-package api
+package http
 
 import (
 	"log"
@@ -15,29 +15,29 @@ func MakeGetHandler(app *urlshortener.UrlShortener, paramName string) func(*gin.
 	return func(c *gin.Context) {
 		url := c.Param(paramName)
 		if url == "" {
-			c.JSON(http.StatusBadRequest, UnshortenAnswer{"empty URL"})
+			c.JSON(http.StatusBadRequest, UnshortenResponse{"empty URL"})
 			return
 		}
 
-		decodedUrl, err := app.Unshorten(url)
+		decodedUrl, err := app.Unshorten(c, url)
 		if err != nil {
 			switch err.(type) {
 			case encoder.DecodingError:
-				c.JSON(http.StatusBadRequest, UnshortenAnswer{err.Error()})
+				c.JSON(http.StatusBadRequest, UnshortenResponse{err.Error()})
 				return
 			case storage.DatabaseError:
 				log.Println("Database error occured: " + err.Error())
-				c.JSON(http.StatusInternalServerError, UnshortenAnswer{err.Error()})
+				c.JSON(http.StatusInternalServerError, UnshortenResponse{err.Error()})
 				return
 			case storage.UrlNotFoundError:
-				c.JSON(http.StatusNotFound, UnshortenAnswer{err.Error()})
+				c.JSON(http.StatusNotFound, UnshortenResponse{err.Error()})
 				return
 			default:
 				panic(err.Error())
 			}
 		}
 
-		c.JSON(http.StatusOK, UnshortenAnswer{decodedUrl})
+		c.JSON(http.StatusOK, UnshortenResponse{decodedUrl})
 	}
 }
 
@@ -45,19 +45,19 @@ func MakePostHandler(app *urlshortener.UrlShortener) func(*gin.Context) {
 	return func(c *gin.Context) {
 		var req ShortenRequest
 		if err := c.BindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, ShortenAnswer{"invalid body request format"})
+			c.JSON(http.StatusBadRequest, ShortenResponse{"invalid body request format"})
 			return
 		}
 
-		encodedUrl, err := app.Shorten(req.Url)
+		encodedUrl, err := app.Shorten(c, req.Url)
 		if err != nil {
 			switch err.(type) {
 			case validator.InvalidUrlError:
-				c.JSON(http.StatusBadRequest, ShortenAnswer{err.Error()})
+				c.JSON(http.StatusBadRequest, ShortenResponse{err.Error()})
 				return
 			case storage.DatabaseError:
 				log.Println("Database error occured: " + err.Error())
-				c.JSON(http.StatusInternalServerError, ShortenAnswer{err.Error()})
+				c.JSON(http.StatusInternalServerError, ShortenResponse{err.Error()})
 				return
 			case encoder.EncodingOverflowError:
 				log.Fatalln("Encoding overflow")
@@ -66,6 +66,6 @@ func MakePostHandler(app *urlshortener.UrlShortener) func(*gin.Context) {
 			}
 		}
 
-		c.JSON(http.StatusOK, ShortenAnswer{encodedUrl})
+		c.JSON(http.StatusOK, ShortenResponse{encodedUrl})
 	}
 }

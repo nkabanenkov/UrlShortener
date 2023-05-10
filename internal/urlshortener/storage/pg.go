@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"urlshortener/internal/urlshortener/encoder"
@@ -34,9 +35,9 @@ func NewPgStorage(enc encoder.Encoder, dbCfg config.Config) (*pgStorage, error) 
 
 // Returns `("", DatabaseError)` if fails to create a record or saves changes in the db,
 // `("", EncodingOverflowError)` if encoding overflow has occured.
-func (s *pgStorage) Shorten(url string) (string, error) {
+func (s *pgStorage) Shorten(ctx context.Context, url string) (string, error) {
 	var row urls
-	result := s.db.Model(&urls{}).Create(&row)
+	result := s.db.WithContext(ctx).Model(&urls{}).Create(&row)
 	if result.Error != nil {
 		return "", DatabaseError{result.Error.Error()}
 	}
@@ -48,7 +49,7 @@ func (s *pgStorage) Shorten(url string) (string, error) {
 	}
 	row.Url = url
 
-	result = s.db.Save(&row)
+	result = s.db.WithContext(ctx).Save(&row)
 	if result.Error != nil {
 		return "", DatabaseError{result.Error.Error()}
 	}
@@ -59,14 +60,14 @@ func (s *pgStorage) Shorten(url string) (string, error) {
 // Returns `"", DecodingError` if `url` has invalid encoding,
 // `"", UrlNotFoundError` if decoded value was not found in the db,
 // `"", DatabaseError` if fails to query the db.
-func (s *pgStorage) Unshorten(url string) (string, error) {
+func (s *pgStorage) Unshorten(ctx context.Context, url string) (string, error) {
 	id, err := s.enc.Decode(url)
 	if err != nil {
 		return "", err
 	}
 
 	var decodedUrl string
-	result := s.db.Model(urls{}).Select("url").Where("Id = ?", id).Take(&decodedUrl)
+	result := s.db.WithContext(ctx).Model(urls{}).Select("url").Where("Id = ?", id).Take(&decodedUrl)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return "", UrlNotFoundError{result.Error.Error()}

@@ -1,13 +1,13 @@
-package api
+package http
 
 type ShortenRequest struct {
 	Url string `json:"url" binding:"required"`
 }
 
-type ShortenAnswer struct {
+type ShortenResponse struct {
 	Message string `json:"message"`
 }
 
-type UnshortenAnswer struct {
+type UnshortenResponse struct {
 	Message string `json:"message"`
 }

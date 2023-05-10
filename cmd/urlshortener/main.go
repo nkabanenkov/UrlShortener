@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"urlshortener/pkg/urlshortener"
-	"urlshortener/pkg/urlshortener/api"
+	"urlshortener/pkg/urlshortener/api/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,8 +16,8 @@ func main() {
 	}
 
 	server := gin.Default()
-	server.GET("/urls/:url", api.MakeGetHandler(&app, "url"))
-	server.POST("/urls", api.MakePostHandler(&app))
+	server.GET("/urls/:url", http.MakeGetHandler(&app, "url"))
+	server.POST("/urls", http.MakePostHandler(&app))
 	if err = server.Run(":8000"); err != nil {
 		log.Fatalln(err.Error())
 	}

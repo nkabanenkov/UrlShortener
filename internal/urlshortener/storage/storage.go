@@ -1,8 +1,10 @@
 package storage
 
+import "context"
+
 type Storage interface {
-	Shorten(string) (string, error)
-	Unshorten(string) (string, error)
+	Shorten(context.Context, string) (string, error)
+	Unshorten(context.Context, string) (string, error)
 }
 
 type DatabaseError struct {
