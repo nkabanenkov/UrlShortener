@@ -11,3 +11,4 @@ services:
       - URLSHORTENER_INMEMORY=1
     ports:
       - 8000:8000
+      - 9111:9111
